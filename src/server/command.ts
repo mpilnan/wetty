@@ -35,7 +35,7 @@ export function getCommand(
           {
             ...urlArgs(headers.referer, {
               port: `${port}`,
-              pass: pass || '',
+              pass: headers['x-ssh-pass'] || pass || '',
               command,
               auth,
               knownHosts,
