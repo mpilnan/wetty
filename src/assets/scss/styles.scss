@@ -25,7 +25,13 @@ body {
 }
 
 .xterm {
+  width: 100%;
+
   .xterm-viewport {
     overflow-y: hidden;
+  }
+
+  .xterm-screen {
+    padding: 0 1rem;
   }
 }
