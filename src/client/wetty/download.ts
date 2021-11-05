@@ -1,4 +1,3 @@
-// @ts-ignore
 import Toastify from 'toastify-js';
 import fileType from 'file-type';
 
@@ -45,15 +44,22 @@ function onCompleteFile(bufferCharacters: string): void {
   });
   const blobUrl = URL.createObjectURL(blob);
 
-  Toastify({
+  const toastConfig = {
     text: `Download ready: <a href="${blobUrl}" target="_blank" download="${fileName}">${fileName}</a>`,
     duration: 10000,
     newWindow: true,
     gravity: 'bottom',
     position: 'right',
-    backgroundColor: '#fff',
+    escapeMarkup: false,
     stopOnFocus: true,
-  }).showToast();
+    avatar: ""
+  }
+
+  if (mimeType.startsWith('image')) {
+    toastConfig.avatar = blobUrl
+  }
+
+  Toastify(toastConfig).showToast();
 }
 
 export class FileDownloader {

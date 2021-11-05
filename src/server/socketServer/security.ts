@@ -15,6 +15,7 @@ export const policies = (allowIframe: boolean) => (
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         fontSrc: ["'self'", 'data:'],
+        imgSrc: ["'self'", 'blob:'],
         connectSrc: [
           "'self'",
           (req.protocol === 'http' ? 'ws://' : 'wss://') + req.get('host'),
