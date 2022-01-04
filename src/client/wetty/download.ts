@@ -61,7 +61,7 @@ function onCompleteFile(bufferCharacters: string): void {
     toastConfig.avatar = blobUrl
   }
 
-  Toastify(toastConfig).showToast();
+  Toastify(toastConfig as Toastify.Options).showToast();
 }
 
 export class FileDownloader {
