@@ -4,6 +4,8 @@ import fileType from 'file-type';
 const DEFAULT_FILE_BEGIN = '\u001b[5i';
 const DEFAULT_FILE_END = '\u001b[4i';
 
+type OnCompleteFile = (bufferCharacters: string) => void;
+
 function onCompleteFile(bufferCharacters: string): void {
   let fileCharacters = bufferCharacters;
   // Try to decode it as base64, if it fails we assume it's not base64
@@ -67,10 +69,10 @@ export class FileDownloader {
   fileBegin: string;
   fileEnd: string;
   partialFileBegin: string;
-  onCompleteFileCallback: Function;
+  onCompleteFileCallback: OnCompleteFile;
 
   constructor(
-    onCompleteFileCallback: Function = onCompleteFile,
+    onCompleteFileCallback: OnCompleteFile = onCompleteFile,
     fileBegin: string = DEFAULT_FILE_BEGIN,
     fileEnd: string = DEFAULT_FILE_END,
   ) {
@@ -98,9 +100,8 @@ export class FileDownloader {
       }
       // We're currently in the state of buffering a beginner marker...
 
-      const nextExpectedCharacter = this.fileBegin[
-        this.partialFileBegin.length
-      ];
+      const nextExpectedCharacter =
+        this.fileBegin[this.partialFileBegin.length];
       // If the next character *is* the next character in the fileBegin sequence.
       if (character === nextExpectedCharacter) {
         this.partialFileBegin += character;
