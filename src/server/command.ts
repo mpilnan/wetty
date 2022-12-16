@@ -40,10 +40,14 @@ export function getCommand(
   if (!forcessh && localhost(host)) {
     return [loginOptions(command, remoteAddress), true];
   }
+  let sshPass = headers['x-ssh-pass'] ||  pass || '';
+  if (Array.isArray(sshPass)) {
+    [ sshPass ] = sshPass;
+  }
   const args = urlArgs(headers.referer, {
     host: sshAddress,
     port: `${port}`,
-    pass: headers['x-ssh-pass'] || pass || '',
+    pass: sshPass,
     command,
     auth,
     knownHosts,
