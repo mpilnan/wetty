@@ -1,7 +1,9 @@
+import type { IncomingHttpHeaders } from 'http';
+import _ from 'lodash';
 import { escapeShell } from '../shared/shell.js';
 
 export function address(
-  headers: Record<string, string>,
+  headers: IncomingHttpHeaders,
   user: string,
   host: string,
 ): string {

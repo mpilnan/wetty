@@ -1,11 +1,12 @@
 import type { Term } from '../../term';
-import { editor } from '../../../shared/elements';
+import { editor } from '../../disconnect/elements';
+import type { Options } from '../options';
 
-export const onInput = (term: Term, updated: any) => {
+export const onInput = (term: Term, updated: Options) => {
   try {
     const updatedConf = JSON.stringify(updated, null, 2);
     if (localStorage.options === updatedConf) return;
-    setOptions(term, updated);
+    term.options = updated.xterm;
     if (
       !updated.wettyFitTerminal &&
       updated.xterm.cols != null &&
@@ -16,16 +17,7 @@ export const onInput = (term: Term, updated: any) => {
     editor.classList.remove('error');
     localStorage.options = updatedConf;
   } catch (e) {
-    console.error('Configuration Error');
-    console.error(e);
+    console.error('Configuration Error', e); // eslint-disable-line no-console
     editor.classList.add('error');
   }
 };
-
-export function setOptions(term: Term, options: any) {
-  Object.keys(options.xterm).forEach(key => {
-    if (key === 'cols' || key === 'rows') return;
-    const value = options.xterm[key];
-    term.setOption(key, value);
-  });
-}

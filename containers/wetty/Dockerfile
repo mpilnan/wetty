@@ -2,9 +2,8 @@ FROM node:current-alpine as builder
 RUN apk add -U build-base python3
 WORKDIR /usr/src/app
 COPY . /usr/src/app
-RUN yarn && \
-    yarn build && \
-    yarn install --production --ignore-scripts --prefer-offline
+RUN yarn install
+RUN yarn build
 
 FROM node:current-alpine
 LABEL maintainer="butlerx@notthe.cloud"
@@ -17,4 +16,4 @@ COPY package.json /usr/src/app
 RUN apk add -U coreutils openssh-client sshpass && \
     mkdir ~/.ssh
 
-ENTRYPOINT [ "yarn" , "docker-entrypoint"]
+ENTRYPOINT ["yarn", "start"]

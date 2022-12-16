@@ -2,7 +2,6 @@ import type SocketIO from 'socket.io';
 import express from 'express';
 import compression from 'compression';
 import winston from 'express-winston';
-
 import type { SSL, SSLBuffer, Server } from '../shared/interfaces.js';
 import { favicon, redirect } from './socketServer/middleware.js';
 import { html } from './socketServer/html.js';
@@ -11,13 +10,14 @@ import { logger } from '../shared/logger.js';
 import { serveStatic, trim } from './socketServer/assets.js';
 import { policies } from './socketServer/security.js';
 import { loadSSL } from './socketServer/ssl.js';
+import { metricMiddleware, metricRoute } from './socketServer/metrics.js';
 
 export async function server(
   { base, port, host, title, allowIframe }: Server,
   ssl?: SSL,
 ): Promise<SocketIO.Server> {
   const basePath = trim(base);
-  logger.info('Starting server', {
+  logger().info('Starting server', {
     ssl,
     port,
     base,
@@ -27,12 +27,21 @@ export async function server(
   const app = express();
   const client = html(basePath, title);
   app
+    .disable('x-powered-by')
+    .use(metricMiddleware(basePath))
+    .use(`${basePath}/metrics`, metricRoute)
     .use(`${basePath}/web_modules`, serveStatic('web_modules'))
     .use(`${basePath}/assets`, serveStatic('assets'))
     .use(`${basePath}/client`, serveStatic('client'))
-    .use(winston.logger(logger))
+    .use(
+      winston.logger({
+        winstonInstance: logger(),
+        expressFormat: true,
+        level: 'http',
+      }),
+    )
     .use(compression())
-    .use(favicon(basePath))
+    .use(await favicon(basePath))
     .use(redirect)
     .use(policies(allowIframe))
     .get(basePath, client)

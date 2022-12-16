@@ -2,17 +2,24 @@ import _ from 'lodash';
 import { dom, library } from '@fortawesome/fontawesome-svg-core';
 import { faCogs } from '@fortawesome/free-solid-svg-icons';
 
-import { FileDownloader } from './wetty/download.js';
-import { disconnect } from './wetty/disconnect.js';
-import { mobileKeyboard } from './wetty/mobile.js';
-import { overlay } from './shared/elements.js';
-import { socket } from './wetty/socket.js';
-import { verifyPrompt } from './shared/verify.js';
-import { terminal } from './wetty/term.js';
+import { FileDownloader } from './wetty/download';
+import { disconnect } from './wetty/disconnect';
+import { mobileKeyboard } from './wetty/mobile';
+import { overlay } from './wetty/disconnect/elements';
+import { socket } from './wetty/socket';
+import { verifyPrompt } from './wetty/disconnect/verify';
+import { terminal, Term } from './wetty/term';
+import { FlowControlClient } from './wetty/flowcontrol';
 
 // Setup for fontawesome
 library.add(faCogs);
 dom.watch();
+
+function onResize(term: Term): () => void {
+  return function resize() {
+    term.resizeTerm();
+  };
+}
 
 socket.on('connect', () => {
   const term = terminal(socket);
@@ -20,11 +27,13 @@ socket.on('connect', () => {
 
   if (!_.isNull(overlay)) overlay.style.display = 'none';
   window.addEventListener('beforeunload', verifyPrompt, false);
+  window.addEventListener('resize', onResize(term), false);
 
   term.resizeTerm();
   term.focus();
   mobileKeyboard();
   const fileDownloader = new FileDownloader();
+  const fcClient = new FlowControlClient();
 
   term.onData((data: string) => {
     socket.emit('input', data);
@@ -35,8 +44,18 @@ socket.on('connect', () => {
   socket
     .on('data', (data: string) => {
       const remainingData = fileDownloader.buffer(data);
+      const downloadLength = data.length - remainingData.length;
+      if (downloadLength && fcClient.needsCommit(downloadLength)) {
+        socket.emit('commit', fcClient.ackBytes);
+      }
       if (remainingData) {
-        term.write(remainingData);
+        if (fcClient.needsCommit(remainingData.length)) {
+          term.write(remainingData, () =>
+            socket.emit('commit', fcClient.ackBytes),
+          );
+        } else {
+          term.write(remainingData);
+        }
       }
     })
     .on('login', () => {
