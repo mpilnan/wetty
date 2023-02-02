@@ -15,7 +15,7 @@ export function address(
   // Check request-header for username
   const remoteUser = headers['remote-user'];
   if (!_.isUndefined(remoteUser) && !Array.isArray(remoteUser)) {
-    return `${escapeShell(remoteUser)}@${host}`;
+    return `${escapeShell(remoteUser)}@${sshHost}`;
   }
   if (!_.isUndefined(headers.referer)) {
     const match = headers.referer.match('.+/ssh/([^/]+)$');
